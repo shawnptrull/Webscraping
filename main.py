@@ -1,16 +1,51 @@
-# This is a sample Python script.
+class Content:
+    def __init__(selfself, url, title, body):
+        self.url = url
+        self.title = title
+        self.body = body
+    def print(self):
+        print(f'URL: {self.url}')
+        print(f'TITLE: {self.title}')
+        print(f'BODY: {self.body}')
 
-# Press Shift+F10 to execute it or replace it with your code.
-# Press Double Shift to search everywhere for classes, files, tool windows, actions, and settings.
+class Website:
+    def __init__(self, name, url, titleTag, bodyTag):
+        self.name = name
+        self.url = url
+        self.titleTag = titleTag
+        self.bodyTag = bodyTag
 
+import requests
+from bs4 import BeautifulSoup
+import lxml
 
-def print_hi(name):
-    # Use a breakpoint in the code line below to debug your script.
-    print(f'Hi, {name}')  # Press Ctrl+F8 to toggle the breakpoint.
+class Crawler:
+    def getPage(self, url):
+        try:
+            req = requests.get(url)
+        except requests.exceptions.RequestException:
+            return None
+        return BeautifulSoup(req.text, 'lxml')
+    def safeGet(self, pageObj, selector):
+        selectedElems = pageObj.select(selector)
+        if selectedElems is not None and len(selectedElems) > 0:
+            return '\n'.join([elem.get_text() for elem in selectedElems])
+        return ''
+    def parse(self, site, url):
+        bs = self.getPage(url)
+        if bs is not None:
+            title = self.safeGet(bs, site.titleTag)
+            body = self.safeGet(bs, site.bodyTag)
+            if title != '' and body != '':
+                content = Content(url, title, body)
+                content.print()
 
+crawler = Crawler()
 
-# Press the green button in the gutter to run the script.
-if __name__ == '__main__':
-    print_hi('PyCharm')
+siteData = [['','','','']]
 
-# See PyCharm help at https://www.jetbrains.com/help/pycharm/
+websites = []
+for row in siteData:
+    websites.append(Website(row[0],row[1], row[2], row[3]))
+
+crawler.parse(websites[0], websites[0].url)
