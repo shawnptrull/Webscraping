@@ -8,8 +8,9 @@ class Content:
         self.body = body
 
     def print(self):
+        base_url = 'https://www.reuters.com'
         print(f'New article found for topic: {self.topic.capitalize()}')
-        print(f'URL: {self.url}')
+        print(f'URL: {base_url}{self.url}')
         print(f'TITLE: {self.title}')
         print(f'BODY: {self.body}')
 
@@ -29,6 +30,8 @@ from bs4 import BeautifulSoup
 import lxml
 
 class Crawler:
+    def __init__(self):
+        self.visited = []
 
     def getPage(self, url):
         #Returns a BeautifulSoup object
@@ -48,20 +51,18 @@ class Crawler:
         return ''
 
     def search(self, topic, site):
-
-        #Creates BeautifulSoup object that uses search-bar url to look up topic
         bs = self.getPage(site.searchUrl + topic)
 
-        # Creates a list of "results/sections" from a url
+        # Selects individual articles (resultListing)
         searchResults = bs.select(site.resultListing)
 
-        # Iterates through each item on list of "results/sections"
+        # Iterates through each article
         for result in searchResults:
 
-            # Create a var that is the attribute 'href' of the first <a> tag from "result/section"
+            # Attribute 'href' of the first <a> tag from an article
             url = result.select(site.resultUrl)[0].attrs['href']
 
-            # Checks to see if it is relative url or absolute. If relative, adds base url to beginning. If none, prints something then returns nothing.
+            # Absolute/Relative filter
             if(site.absoluteUrl):
                 bs = self.getPage(url)
             else:
@@ -70,25 +71,26 @@ class Crawler:
                 print('Something was wrong with that page or URL. Skipping!')
                 return
 
-            # Puts 2 returned strings into variables
+            # Returned strings from page elements
             title = self.safeGet(bs, site.titleTag)
             body = self.safeGet(bs, site.bodyTag)
 
-            global t_lst
-            global b_lst
 
-            # Checks variables to see if they have anything. If they do, it prints the topic, url, title, and body.
+            # Dust in the wind filter
             if title != '' and body != '':
-                if title not in t_lst or body not in b_lst:
-                    t_lst.append(title)
-                    b_lst.append(body)
+
+                # Replication avoidance filter
+                if title not in self.visited:
+                    self.visited.append(title)
                     content = Content(topic, url, title, body)
                     content.print()
 
-t_lst = []
-b_lst = []
-
 crawler = Crawler()
+
+'''
+To add websites with similar html layout, insert list into siteData.
+To add topic of interest, insert into "topics" list.
+'''
 
 siteData = [['Reuters', 'https://www.reuters.com', 'https://www.reuters.com/search/news?sortBy=&dateRange=&blob=', 'div.search-result-indiv', 'h3.search-result-title a', False, 'h1', 'p']]
 
@@ -98,6 +100,7 @@ for row in siteData:
 
 topics = ['python', 'data science']
 for topic in topics:
+    print('\n')
     print('           ---------GETTING INFO ABOUT: ' + topic.capitalize() + '---------         ' + '\n')
     for targetSite in sites:
         crawler.search(topic, targetSite)
