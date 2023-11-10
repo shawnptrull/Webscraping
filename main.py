@@ -1,16 +1,20 @@
 import re
+import requests
+from bs4 import BeautifulSoup
+import lxml
 
 class Content:
-    def __init__(self, topic, url, title, body):
+    def __init__(self, topic, url, title, body, base_url):
         self.topic = topic
         self.url = url
         self.title = title
         self.body = body
+        self.base_url = base_url
+
 
     def print(self):
-        base_url = 'https://www.reuters.com'
         print(f'New article found for topic: {self.topic.capitalize()}')
-        print(f'URL: {base_url}{self.url}')
+        print(f'URL: {self.base_url}{self.url}')
         print(f'TITLE: {self.title}')
         print(f'BODY: {self.body}')
 
@@ -25,24 +29,20 @@ class Website:
         self.titleTag = titleTag
         self.bodyTag = bodyTag
 
-import requests
-from bs4 import BeautifulSoup
-import lxml
-
 class Crawler:
     def __init__(self):
         self.visited = []
 
+    # Returns a BeautifulSoup object
     def getPage(self, url):
-        #Returns a BeautifulSoup object
         try:
             req = requests.get(url)
         except requests.exceptions.RequestException:
             return None
         return BeautifulSoup(req.text, 'lxml')
 
+    # Returns the text from selected tag
     def safeGet(self, pageObj, selector):
-        #Returns the text from selected tag
         childObj = pageObj.select(selector)
         if childObj is not None and len(childObj) > 0:
             if childObj[0].get_text() == "Discover Thomson Reuters":
@@ -50,6 +50,7 @@ class Crawler:
             return childObj[0].get_text()
         return ''
 
+    # The action
     def search(self, topic, site):
         bs = self.getPage(site.searchUrl + topic)
 
@@ -74,7 +75,7 @@ class Crawler:
             # Returned strings from page elements
             title = self.safeGet(bs, site.titleTag)
             body = self.safeGet(bs, site.bodyTag)
-
+            base_url = site.url
 
             # Dust in the wind filter
             if title != '' and body != '':
@@ -82,7 +83,7 @@ class Crawler:
                 # Replication avoidance filter
                 if title not in self.visited:
                     self.visited.append(title)
-                    content = Content(topic, url, title, body)
+                    content = Content(topic, url, title, body, base_url)
                     content.print()
 
 crawler = Crawler()
