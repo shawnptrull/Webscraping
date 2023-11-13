@@ -47,10 +47,10 @@ class Crawler:
 
 crawler = Crawler()
 
-siteData = [['', '', '', '']]
+siteData = [['Wikipedia', 'https://en.wikipedia.org', 'h1', 'p']]
 
 websites = []
 for row in siteData:
     websites.append(Website(row[0], row[1], row[2], row[3]))
 
-crawler.pase(websites[0], '')
+crawler.parse(websites[0], websites[0].url)
