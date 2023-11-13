@@ -2,6 +2,10 @@ import requests
 import lxml
 from bs4 import BeautifulSoup
 
+'''
+Use this to parse through multiple websites within a single list of Website objects
+'''
+
 class Content:
     def __init__(self, url, title, body):
         self.url = url
