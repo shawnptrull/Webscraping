@@ -1,51 +1,27 @@
+import requests
+import lxml
+from bs4 import BeautifulSoup
+
 class Content:
-    def __init__(selfself, url, title, body):
+    def __init__(self, url, title, body):
         self.url = url
         self.title = title
         self.body = body
-    def print(self):
-        print(f'URL: {self.url}')
-        print(f'TITLE: {self.title}')
-        print(f'BODY: {self.body}')
 
-class Website:
-    def __init__(self, name, url, titleTag, bodyTag):
-        self.name = name
-        self.url = url
-        self.titleTag = titleTag
-        self.bodyTag = bodyTag
+def getPage(url):
+    req = requests.get(url)
+    return BeautifulSoup(req.text, 'lxml')
 
-import requests
-from bs4 import BeautifulSoup
-import lxml
+def scrapeToscrape(url):
+    bs = getPage(url)
+    titles = bs.select('h2')
+    title = [title.text for title in titles]
+    paragraphs = bs.select('p')
+    body = [paragraph.text for paragraph in paragraphs]
+    return Content(url, title, body)
 
-class Crawler:
-    def getPage(self, url):
-        try:
-            req = requests.get(url)
-        except requests.exceptions.RequestException:
-            return None
-        return BeautifulSoup(req.text, 'lxml')
-    def safeGet(self, pageObj, selector):
-        selectedElems = pageObj.select(selector)
-        if selectedElems is not None and len(selectedElems) > 0:
-            return '\n'.join([elem.get_text() for elem in selectedElems])
-        return ''
-    def parse(self, site, url):
-        bs = self.getPage(url)
-        if bs is not None:
-            title = self.safeGet(bs, site.titleTag)
-            body = self.safeGet(bs, site.bodyTag)
-            if title != '' and body != '':
-                content = Content(url, title, body)
-                content.print()
-
-crawler = Crawler()
-
-siteData = [['','','','']]
-
-websites = []
-for row in siteData:
-    websites.append(Website(row[0],row[1], row[2], row[3]))
-
-crawler.parse(websites[0], websites[0].url)
+url = 'https://toscrape.com'
+content = scrapeToscrape(url)
+print(content.title[0], '\n', content.body[0])
+print('\n')
+print(content.title[1], '\n', content.body[1])
