@@ -3,6 +3,10 @@ import requests
 from bs4 import BeautifulSoup
 import lxml
 
+'''
+Like Parse, but with a search bar involved.
+'''
+
 class Content:
     def __init__(self, topic, url, title, body, base_url):
         self.topic = topic
